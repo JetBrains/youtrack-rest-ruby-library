@@ -3,18 +3,6 @@ require "rexml/document"
 
 module YouTrackEntities
 
-  # Gets all users that match search params
-  # then applies accept method to each of them
-  # if accept returns true to only one of that users
-  # return such user
-  # If there is no such user, or accept returns true for
-  # several users, returns nil
-  def find_user(conn, search_params, accept = lambda { |user| true} )
-    step = 10
-    current_position = 0
-
-  end
-
   class User
 
     attr_reader :login, :password
@@ -35,8 +23,8 @@ module YouTrackEntities
     end
 
     def get
-      user_element = REXML::XPath.first(REXML::Document.new(@conn.request(:get, self.path).body), "//user")
-      [:email, :fullName, :jabber].each{|elem| self.instance_variable_set("@#{elem}", user_element.attributes[elem])}
+      user_element = REXML::XPath.first(REXML::Document.new(@conn.request(:get, path).body), "//user")
+      [:email, :fullName, :jabber].each{|elem| self.instance_variable_set("@#{elem}", user_element.attributes[elem.to_s])}
       self
     end
 
@@ -52,6 +40,88 @@ module YouTrackEntities
         value = self.instance_variable_get("@#{var}")
         props[var] = value if !value.nil?
       }
+    end
+
+  end
+
+  class Issue
+
+    attr_reader :project_id, :issue_id
+    attr_reader :comments, :attachments, :voters, :links
+
+    def initialize(conn, project_id, issue_id)
+      @project_id = project_id
+      @issue_id = issue_id
+      @conn = conn
+      @issue_params = {}
+      @comments = {}
+      @attachments = {}
+      @links = {}
+    end
+
+    def get_param_names
+      @issue_params.keys
+    end
+
+    def get_param(param_name)
+      @issue_params[param_name]
+    end
+
+    def set_param(param_name, param_value)
+      @issue_params[param_name] = param_value
+    end
+
+    def full_id
+      "#{self.project_id}-#{self.issue_id}"
+    end
+
+    def apply_command(command, comment = nil, group = nil, disable_notifications = nil, run_as = nil)
+      params = {:command => command,
+                :comment => comment,
+                :group => group,
+                :disableNotifications => disable_notifications,
+                :runAs => run_as}
+      @conn.request(:post, "#{path}/execute", params)
+    end
+
+    def get
+      REXML::XPath.each(REXML::Document.new(@conn.request(:get, path).body), "//issue/field"){ |field|
+        values = []
+        REXML::XPath.each(field, "/value") { |value|
+          values << value.text
+        }
+        create_getter_and_setter_and_set_value(field.attributes["name"], values)
+      }
+      self
+    end
+
+#    def method_missing(m, *args)
+#      if (m[-1, 1] == "=") and (args.length > 0)
+#        self.create_getter_and_setter_and_set_value(m[0..-1], args)
+#      end
+#      raise NotImplementedError
+#    end
+
+    private
+
+    def metaclass
+      class << self;
+        self
+      end
+    end
+
+    def create_getter_and_setter_and_set_value(param_name, params = {})
+      metaclass.send(:define_method, param_name) do
+        self.get_param(param_name)
+      end
+      metaclass.send(:define_method, param_name + "=") do |values|
+        self.set_param(param_name, values)
+      end
+      self.set_param(param_name, params)
+    end
+
+    def path
+      "#{@conn.rest_path}/issue/#{self.full_id}"
     end
 
   end
