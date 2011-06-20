@@ -85,9 +85,10 @@ module YouTrackEntities
     end
 
     def get
-      REXML::XPath.each(REXML::Document.new(@conn.request(:get, path).body), "//issue/field"){ |field|
+      body = REXML::Document.new(@conn.request(:get, path).body)
+      REXML::XPath.each(body, "//issue/field"){ |field|
         values = []
-        REXML::XPath.each(field, "/value") { |value|
+        REXML::XPath.each(body, field.xpath + "/value") { |value|
           values << value.text
         }
         create_getter_and_setter_and_set_value(field.attributes["name"], values)
@@ -111,6 +112,7 @@ module YouTrackEntities
     end
 
     def create_getter_and_setter_and_set_value(param_name, params = {})
+      param_name = param_name.downcase
       metaclass.send(:define_method, param_name) do
         self.get_param(param_name)
       end
