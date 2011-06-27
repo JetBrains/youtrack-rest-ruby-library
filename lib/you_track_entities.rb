@@ -49,10 +49,15 @@ module YouTrackEntities
     attr_reader :project_id, :issue_id
     attr_reader :comments, :attachments, :voters, :links
 
-    def initialize(conn, project_id, issue_id)
-      @project_id = project_id
-      @issue_id = issue_id
+    def initialize(conn, issue_id, project_id = nil)
       @conn = conn
+      if project_id.nil?
+        @issue_id = issue_id[/(\w+)-(\d+)/, 2]
+        @project_id = issue_id[/(\w+)-(\d+)/, 1]
+      else
+        @issue_id = issue_id
+        @project_id = project_id
+      end
       @issue_params = {}
       @comments = {}
       @attachments = {}

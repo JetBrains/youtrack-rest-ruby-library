@@ -4,7 +4,7 @@ require "rake/gempackagetask"
 
 spec = Gem::Specification.new do |s|
   s.name = "youtrack_api"
-  s.version = "0.0.1"
+  s.version = "0.0.3"
   s.author = "Anna Zhdan"
   s.email = "anna.zhdan@gmail.com"
   s.homepage = "https://github.com/anna239/youtrack-rest-ruby-library"
