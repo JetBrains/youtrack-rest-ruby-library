@@ -34,4 +34,13 @@ module Util
     end
     result
   end
+
+  def parse_command(vcs_comment)
+    issue_id = vcs_comment[/( |^)#(\w+-\d+) /, 2]
+    return false if issue_id.nil?
+
+    command = vcs_comment[/( |^)#\w+-\d+ (.+)/, 2].strip
+  end
+
+
 end

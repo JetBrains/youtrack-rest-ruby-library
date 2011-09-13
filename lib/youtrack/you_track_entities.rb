@@ -12,10 +12,10 @@ module YouTrackEntities
       @conn = conn
       if project_id.nil?
         @issue_id = issue_id[/(\w+)-(\d+)/, 2]
-        @project_id = issue_id[/(\w+)-(\d+)/, 1]
+        @id = issue_id[/(\w+)-(\d+)/, 1]
       else
         @issue_id = issue_id
-        @project_id = project_id
+        @id = project_id
       end
       @issue_params = {}
       @comments = {}
@@ -88,6 +88,38 @@ module YouTrackEntities
 
     def path
       "#{@conn.rest_path}/issue/#{self.full_id}"
+    end
+
+  end
+
+  class Project
+
+    attr_accessor :lead, :name, :id
+
+    def initialize(connection, project_name, project_id = nil, owner = nil)                                           2
+      @conn = connection
+      @id = project_id
+      @name = project_name
+      @lead = owner
+    end
+
+    def get
+      project = REXML::XPath.first(REXML::Document.new(@conn.request(:get, self.path).body), "//project")
+      [:name, :id, :lead].each{|elem| instance_variable_set("@#{elem}", project.attributes[elem.to_s])}
+    end
+
+    def put
+
+    end
+
+    def post
+
+    end
+
+    private
+
+    def path
+      "#{@conn.rest_path}/admin/project/#{id}"
     end
 
   end
