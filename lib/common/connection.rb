@@ -2,7 +2,7 @@ require "uri"
 require "net/http"
 require "cgi"
 
-class YouTrackConnection
+class Connection
 
   attr_reader :rest_path
 
@@ -22,7 +22,7 @@ class YouTrackConnection
 
   def request(method_name, url, params = {}, body = nil)
     path = url
-    if !params.empty?
+    unless params.empty?
       path = "#{url}?#{url_encode(params)}"
     end
     req = nil
@@ -31,6 +31,8 @@ class YouTrackConnection
         req = Net::HTTP::Get.new(path, @headers)
       when :post
         req = Net::HTTP::Post.new(path, @headers)
+      else
+        #TODO handle this
     end
     @connection.start do |http|
       resp = http.request(req)
