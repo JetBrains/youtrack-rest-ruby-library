@@ -23,7 +23,7 @@ module Entities
     end
 
     def get
-      user_element = REXML::XPath.first(REXML::Document.new(@conn.request(:get, path).body), "//user")
+      user_element = REXML::XPath.first(REXML::Document.new(@conn.request(:get, self.path).body), "//user")
       [:email, :fullName, :jabber].each{|elem| self.instance_variable_set("@#{elem}", user_element.attributes[elem.to_s])}
       self
     end

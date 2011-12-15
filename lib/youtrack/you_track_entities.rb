@@ -45,11 +45,11 @@ module YouTrackEntities
                 :group => group,
                 :disableNotifications => disable_notifications,
                 :runAs => run_as}
-      @conn.request(:post, "#{path}/execute", params)
+      @conn.request(:post, "#{self.path}/execute", params)
     end
 
     def get
-      body = REXML::Document.new(@conn.request(:get, path).body)
+      body = REXML::Document.new(@conn.request(:get, self.path).body)
       REXML::XPath.each(body, "//issue/field"){ |field|
         values = []
         REXML::XPath.each(body, field.xpath + "/value") { |value|
@@ -96,7 +96,7 @@ module YouTrackEntities
 
     attr_accessor :lead, :name, :id
 
-    def initialize(connection, project_name, project_id = nil, owner = nil)                                           2
+    def initialize(connection, project_name, project_id = nil, owner = nil)
       @conn = connection
       @id = project_id
       @name = project_name
