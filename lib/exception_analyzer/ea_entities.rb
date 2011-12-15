@@ -23,9 +23,14 @@ module EAEntities
     def get
       exception = REXML::XPath.first(REXML::Document.new(@conn.request(:get, self.path).body), "//exception")
       exception.attributes.each { |name, value| self.instance_variable_set(name, value) }
+      self.trace = REXML::XPath.first(exception, "//trace/text()")
+      REXML::XPath.each(exception, "//params/param") { |param|
+        self.param[param.attributes[:name]] = REXML::XPath.first(param, "/text()")
+      }
     end
 
     def put
+
 
     end
 
